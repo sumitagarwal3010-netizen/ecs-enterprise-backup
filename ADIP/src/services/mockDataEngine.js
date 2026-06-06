@@ -614,12 +614,14 @@ export function createInitialState() {
     },
 
     aiSuggestedQuestions: [
-      'Why is Payments health lower?',
-      'Which release is highest risk?',
-      'What is blocking UPI Release 24.6?',
-      'How many critical incidents are open?',
-      'What is our current MTTR?',
-      'Which batch job failed today?',
+      'Why is Payments Health low?',
+      'Why did Operations Health drop?',
+      'Which release is most risky?',
+      'What are the critical incidents?',
+      'Show governance risks.',
+      'Show testing concerns.',
+      'Show production concerns.',
+      'Generate executive summary.',
     ],
   };
 }

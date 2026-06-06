@@ -15,7 +15,6 @@ export function AIAdvisor() {
     refreshIntervalMs,
   } = useSimulation();
   const [input, setInput] = useState('');
-  const inChatMode = querySession !== null;
 
   const handleAsk = (text: string) => {
     const trimmed = text.trim();
@@ -76,7 +75,53 @@ export function AIAdvisor() {
       </Box>
 
       <Box sx={{ flex: 1, overflow: 'auto', p: 1.5, display: 'flex', flexDirection: 'column' }}>
-        {!inChatMode && (
+        {querySession ? (
+          <Box
+            key={querySession.sessionId}
+            component={motion.div}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            sx={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: 1.5,
+              border: `1px solid ${colors.border.purple}`,
+              bgcolor: `${colors.secondary}08`,
+              overflow: 'hidden',
+            }}
+          >
+            <Box sx={{ p: 1.5, borderBottom: `1px solid ${colors.border.subtle}`, bgcolor: colors.bg.glass }}>
+              <Typography variant="caption" sx={{ fontSize: '0.65rem', color: colors.primary, fontWeight: 700, textTransform: 'uppercase' }}>
+                Question
+              </Typography>
+              <Typography variant="body2" sx={{ fontSize: '0.8125rem', fontWeight: 600, mt: 0.5, lineHeight: 1.4 }}>
+                {querySession.question}
+              </Typography>
+            </Box>
+            <Box sx={{ p: 1.5, flex: 1, overflow: 'auto' }}>
+              <Typography variant="caption" sx={{ fontSize: '0.65rem', color: colors.secondary, fontWeight: 700, textTransform: 'uppercase' }}>
+                Answer
+              </Typography>
+              <Typography
+                variant="body2"
+                component="pre"
+                sx={{
+                  fontSize: '0.75rem',
+                  lineHeight: 1.6,
+                  color: colors.text.secondary,
+                  mt: 0.75,
+                  whiteSpace: 'pre-wrap',
+                  fontFamily: 'inherit',
+                  m: 0,
+                }}
+              >
+                {querySession.answer}
+              </Typography>
+            </Box>
+          </Box>
+        ) : (
           <>
             <Typography
               variant="caption"
@@ -141,71 +186,22 @@ export function AIAdvisor() {
                 />
               ))}
             </Box>
+
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                p: 2,
+                textAlign: 'center',
+              }}
+            >
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', lineHeight: 1.5 }}>
+                Select a suggested question or enter a query to analyze live operations telemetry.
+              </Typography>
+            </Box>
           </>
-        )}
-
-        {querySession && (
-          <Box
-            key={querySession.question}
-            component={motion.div}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            sx={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              borderRadius: 1.5,
-              border: `1px solid ${colors.border.purple}`,
-              bgcolor: `${colors.secondary}08`,
-              overflow: 'hidden',
-            }}
-          >
-            <Box sx={{ p: 1.5, borderBottom: `1px solid ${colors.border.subtle}`, bgcolor: colors.bg.glass }}>
-              <Typography variant="caption" sx={{ fontSize: '0.65rem', color: colors.primary, fontWeight: 700, textTransform: 'uppercase' }}>
-                Your Query
-              </Typography>
-              <Typography variant="body2" sx={{ fontSize: '0.8125rem', fontWeight: 600, mt: 0.5, lineHeight: 1.4 }}>
-                {querySession.question}
-              </Typography>
-            </Box>
-            <Box sx={{ p: 1.5, flex: 1, overflow: 'auto' }}>
-              <Typography variant="caption" sx={{ fontSize: '0.65rem', color: colors.secondary, fontWeight: 700, textTransform: 'uppercase' }}>
-                AI Analysis
-              </Typography>
-              <Typography
-                variant="body2"
-                component="pre"
-                sx={{
-                  fontSize: '0.75rem',
-                  lineHeight: 1.6,
-                  color: colors.text.secondary,
-                  mt: 0.75,
-                  whiteSpace: 'pre-wrap',
-                  fontFamily: 'inherit',
-                  m: 0,
-                }}
-              >
-                {querySession.answer}
-              </Typography>
-            </Box>
-          </Box>
-        )}
-
-        {!querySession && (
-          <Box
-            sx={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              p: 2,
-              textAlign: 'center',
-            }}
-          >
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', lineHeight: 1.5 }}>
-              Select a suggested question or enter a query to analyze live operations telemetry.
-            </Typography>
-          </Box>
         )}
       </Box>
 

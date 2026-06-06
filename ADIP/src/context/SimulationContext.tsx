@@ -20,6 +20,7 @@ import type { ExecutiveSummary } from '../types/executiveSummary';
 type SimState = SimulationState;
 
 interface QuerySession {
+  sessionId: number;
   question: string;
   answer: string;
 }
@@ -54,6 +55,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   stateRef.current = state;
   const [selectedDomain, setSelectedDomain] = useState('all');
   const [querySession, setQuerySession] = useState<QuerySession | null>(null);
+  const querySessionIdRef = useRef(0);
   const [kpiDrilldown, setKpiDrilldown] = useState<KpiDrilldownState | null>(null);
   const [executiveSummary, setExecutiveSummary] = useState<ExecutiveSummary | null>(null);
 
@@ -69,7 +71,9 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   const askQuestion = useCallback((question: string) => {
     const trimmed = question.trim();
     if (!trimmed) return;
+    querySessionIdRef.current += 1;
     setQuerySession({
+      sessionId: querySessionIdRef.current,
       question: trimmed,
       answer: generateAIResponse(trimmed, stateRef.current),
     });
