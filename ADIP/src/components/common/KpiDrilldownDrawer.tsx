@@ -18,13 +18,13 @@ function SectionTitle({ children }: { children: string }) {
     <Typography
       variant="caption"
       sx={{
-        fontWeight: 700,
-        color: colors.secondary,
+        fontWeight: 800,
+        color: colors.info,
         textTransform: 'uppercase',
         letterSpacing: '0.06em',
-        fontSize: '0.65rem',
+        fontSize: '0.75rem',
         display: 'block',
-        mb: 1,
+        mb: 1.25,
       }}
     >
       {children}
@@ -48,29 +48,29 @@ function RecordRow({
   return (
     <Box
       sx={{
-        p: 1,
-        mb: 0.75,
+        p: 1.25,
+        mb: 1,
         borderRadius: 1,
         bgcolor: colors.bg.glass,
         border: `1px solid ${colors.border.subtle}`,
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
-        <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.7rem' }}>
+        <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.78rem', color: '#FFFFFF' }}>
           {id}
         </Typography>
         {severity && <SeverityChip severity={severity} />}
       </Box>
-      <Typography variant="body2" sx={{ fontSize: '0.78rem', mt: 0.25, lineHeight: 1.4 }}>
+      <Typography variant="body2" sx={{ fontSize: '0.9rem', mt: 0.25, lineHeight: 1.45, color: '#FFFFFF', fontWeight: 600 }}>
         {title}
       </Typography>
       {detail && (
-        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block', mt: 0.25 }}>
+        <Typography variant="caption" sx={{ fontSize: '0.78rem', display: 'block', mt: 0.5, color: '#FFFFFF' }}>
           {detail}
         </Typography>
       )}
       {meta && (
-        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block', mt: 0.25 }}>
+        <Typography variant="caption" sx={{ fontSize: '0.75rem', display: 'block', mt: 0.4, color: colors.info, fontWeight: 700 }}>
           {meta}
         </Typography>
       )}
@@ -127,18 +127,18 @@ export function KpiDrilldownDrawer() {
             }}
           >
             <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', textTransform: 'uppercase' }}>
+              <Typography variant="caption" sx={{ fontSize: '0.72rem', textTransform: 'uppercase', color: colors.info, fontWeight: 800, letterSpacing: '0.06em' }}>
                 Drilldown
               </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.3, color: '#FFFFFF', fontSize: '1.05rem' }}>
                 {payload.label}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, mt: 0.5 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: colors.primary }}>
+                <Typography variant="h5" sx={{ fontWeight: 900, color: '#FFFFFF' }}>
                   {payload.value}
                 </Typography>
                 {payload.suffix && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 700 }}>
                     {payload.suffix}
                   </Typography>
                 )}
@@ -149,12 +149,12 @@ export function KpiDrilldownDrawer() {
             </IconButton>
           </Box>
 
-          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2.25 }}>
             <SectionTitle>Historical Trend</SectionTitle>
             <Box
               sx={{
-                height: 100,
-                mb: 2,
+                height: 112,
+                mb: 2.5,
                 p: 1,
                 borderRadius: 1,
                 bgcolor: colors.bg.glass,
@@ -182,7 +182,7 @@ export function KpiDrilldownDrawer() {
             </Box>
 
             <SectionTitle>Source Records</SectionTitle>
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: 2.5 }}>
               {payload.sourceRecords.length > 0 ? (
                 payload.sourceRecords.map((r) => (
                   <RecordRow
@@ -195,18 +195,17 @@ export function KpiDrilldownDrawer() {
                   />
                 ))
               ) : (
-                <Typography variant="caption" color="text.secondary">No source records available.</Typography>
+                <Typography variant="caption" sx={{ color: '#FFFFFF', fontSize: '0.82rem' }}>No source records available.</Typography>
               )}
             </Box>
 
             <SectionTitle>Supporting Evidence</SectionTitle>
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: 2.5 }}>
               {payload.supportingEvidence.map((line) => (
                 <Typography
                   key={line}
                   variant="body2"
-                  color="text.secondary"
-                  sx={{ fontSize: '0.75rem', mb: 0.75, lineHeight: 1.5, pl: 1, borderLeft: `2px solid ${colors.border.purple}` }}
+                  sx={{ fontSize: '0.86rem', mb: 1, lineHeight: 1.5, pl: 1.25, borderLeft: `2px solid ${colors.info}`, color: '#FFFFFF', fontWeight: 600 }}
                 >
                   {line}
                 </Typography>
@@ -214,7 +213,7 @@ export function KpiDrilldownDrawer() {
             </Box>
 
             <SectionTitle>Related Applications</SectionTitle>
-            <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+            <Box sx={{ mb: 2.5, display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
               {payload.relatedApplications.map((app) => (
                 <Box
                   key={app.name}
@@ -224,12 +223,14 @@ export function KpiDrilldownDrawer() {
                     borderRadius: 1,
                     bgcolor: colors.bg.glass,
                     border: `1px solid ${colors.border.subtle}`,
-                    fontSize: '0.72rem',
+                    fontSize: '0.8rem',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
                   }}
                 >
                   {app.name}
                   {app.status && (
-                    <Typography component="span" variant="caption" sx={{ ml: 0.5, color: colors.text.muted }}>
+                    <Typography component="span" variant="caption" sx={{ ml: 0.5, color: colors.info, fontWeight: 700 }}>
                       · {app.status}
                     </Typography>
                   )}
@@ -238,7 +239,7 @@ export function KpiDrilldownDrawer() {
             </Box>
 
             <SectionTitle>Related Incidents</SectionTitle>
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: 2.5 }}>
               {payload.relatedIncidents.map((inc) => (
                 <RecordRow
                   key={inc.id}
