@@ -68,6 +68,9 @@ interface GovernanceAlertDetail {
   findingTitle: string;
   relatedApplication: string;
   relatedModel: string;
+  triggeringGovernanceControl: string;
+  controlObjective: string;
+  controlResult: 'FAILED' | 'PASSED';
   lifecycleStage: string;
   shortReason: string;
   issueEvidence: string[];
@@ -573,13 +576,15 @@ const governanceAlerts: GovernanceAlertDetail[] = [
     findingTitle: 'Model Drift Alert',
     relatedApplication: 'UPI Fraud Monitoring System',
     relatedModel: 'UPI Fraud Pattern Detector',
+    triggeringGovernanceControl: 'Model Performance Monitoring',
+    controlObjective: 'Detect prediction drift above approved threshold.',
+    controlResult: 'FAILED',
     lifecycleStage: 'Production',
     shortReason: 'Transaction behavior drift exceeded configured guardrail.',
     issueEvidence: [
       'Drift score = 18%',
       'Configured threshold = 15%',
-      'Threshold breach duration = 4.5 hours',
-      'Alert source: Model monitoring policy MON-UPI-07',
+      '7 consecutive days breached',
     ],
     severity: 'Warning',
     impact: 'Fraud detection accuracy may degrade, increasing false positives and analyst investigation effort.',
@@ -593,13 +598,14 @@ const governanceAlerts: GovernanceAlertDetail[] = [
     findingTitle: 'Latency Breach',
     relatedApplication: 'AML Operations Dashboard',
     relatedModel: 'AML Alert Prioritization Engine',
+    triggeringGovernanceControl: 'Operational SLA Monitoring',
+    controlObjective: 'Model response time must remain below 2 seconds.',
+    controlResult: 'FAILED',
     lifecycleStage: 'Production',
     shortReason: 'Model scoring latency breached investigation SLA window.',
     issueEvidence: [
       'Observed latency = 3.8s',
       'SLA limit = 2.0s',
-      'P95 latency breached for 3 consecutive monitoring windows',
-      'Queue backlog increase = 22%',
     ],
     severity: 'Warning',
     impact: 'AML case triage throughput is reduced, delaying high-priority review decisions.',
@@ -613,13 +619,14 @@ const governanceAlerts: GovernanceAlertDetail[] = [
     findingTitle: 'Data Quality Warning',
     relatedApplication: 'Treasury Liquidity Management Platform',
     relatedModel: 'Treasury Liquidity Forecast Model',
+    triggeringGovernanceControl: 'Input Data Quality Validation',
+    controlObjective: 'Data completeness >95%.',
+    controlResult: 'FAILED',
     lifecycleStage: 'Production',
     shortReason: 'Input feed completeness fell below minimum quality standard.',
     issueEvidence: [
       'Data completeness = 88%',
       'Required threshold = 95%',
-      'Missing source records detected in intraday feed window 09:30-10:15',
-      'Source impacted: Treasury cash-position delta stream',
     ],
     severity: 'Warning',
     impact: 'Liquidity forecast confidence is reduced, impacting intraday funding decisions.',
@@ -633,11 +640,14 @@ const governanceAlerts: GovernanceAlertDetail[] = [
     findingTitle: 'Missing Model Card',
     relatedApplication: 'Corporate Lending Workspace',
     relatedModel: 'Corporate Loan Covenant Monitor',
+    triggeringGovernanceControl: 'Model Documentation Completeness Review',
+    controlObjective: 'All production promotion artifacts must exist.',
+    controlResult: 'FAILED',
     lifecycleStage: 'Pilot',
     shortReason: 'Required governance artifacts are incomplete for stage promotion.',
     issueEvidence: [
-      'Promotion gate check failed for Pilot → Production transition',
-      'Documentation checklist status = 2/4 required artifacts complete',
+      'Model Card missing',
+      'Explainability Report missing',
     ],
     missingArtifacts: [
       { name: 'Model Card', present: false },
@@ -657,13 +667,13 @@ const governanceAlerts: GovernanceAlertDetail[] = [
     findingTitle: 'Outdated Risk Assessment',
     relatedApplication: 'Regulatory Intelligence Portal',
     relatedModel: 'Regulatory Circular Summarizer',
+    triggeringGovernanceControl: 'Annual Model Risk Review',
+    controlObjective: 'Risk assessment refreshed every 12 months.',
+    controlResult: 'FAILED',
     lifecycleStage: 'In Review',
     shortReason: 'Annual model risk assessment has crossed policy expiry date.',
     issueEvidence: [
-      'Last assessment completed = 14 months ago',
-      'Required review cadence = Annual (12 months)',
-      'Current status = 2 months overdue',
-      'Approval record missing for current review cycle',
+      'Last assessment 14 months ago',
     ],
     severity: 'Healthy',
     impact: 'Risk posture may be outdated, creating compliance exposure during regulatory review.',
@@ -890,9 +900,16 @@ export function ModelInventory() {
               if (!alert) return null;
               return (
                 <GlassCard hover={false} sx={{ p: 1.5 }}>
+                  <DetailLine
+                    label="Traceability"
+                    value={`${alert.relatedApplication} → ${alert.relatedModel} → ${alert.triggeringGovernanceControl}`}
+                  />
                   <DetailLine label="Alert Title" value={alert.findingTitle} />
                   <DetailLine label="Related Application" value={alert.relatedApplication} />
                   <DetailLine label="Related Model" value={alert.relatedModel} />
+                  <DetailLine label="Triggering Governance Control" value={alert.triggeringGovernanceControl} />
+                  <DetailLine label="Control Objective" value={alert.controlObjective} />
+                  <DetailLine label="Control Result" value={alert.controlResult} />
                   <DetailLine label="Lifecycle Stage" value={alert.lifecycleStage} />
                   <DetailLine label="Issue Details" value={alert.shortReason} />
                   <Box sx={{ mt: 0.75, mb: 1.5 }}>
