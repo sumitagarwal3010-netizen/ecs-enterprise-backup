@@ -1,4 +1,5 @@
 import { AI_USE_CASES } from '../data/aiUseCaseRegistryMock.ts';
+import { calculatePortfolioHealthScore } from '../data/portfolioHealthDrilldownData.ts';
 
 /** @typedef {'netbanking' | 'mobile' | 'payments'} DomainId */
 
@@ -201,6 +202,7 @@ export function filterByDomain(items, domainKey = 'domain', filter = 'all') {
 }
 
 export function createInitialState() {
+  const portfolioHealthScore = calculatePortfolioHealthScore();
   const domainHealth = BANKING_DOMAINS.map((name) => {
     const s = domainSeed(name);
     return {
@@ -228,7 +230,7 @@ export function createInitialState() {
       openRisks: 14,
       openIncidents: 6,
       businessImpactScore: 84,
-      portfolioHealth: 91,
+      portfolioHealth: portfolioHealthScore,
       domainHealth,
       portfolioMetrics: [
         { label: 'Active Changes', value: 128, trend: 5 },
@@ -262,7 +264,7 @@ export function createInitialState() {
         status: 'Investigating',
       })),
       scorecard: [
-        { label: 'Portfolio Health', value: 91 },
+        { label: 'Portfolio Health', value: portfolioHealthScore },
         { label: 'AI Impact Score', value: 67 },
         { label: 'Release Confidence', value: 88 },
         { label: 'Compliance Posture', value: 94 },

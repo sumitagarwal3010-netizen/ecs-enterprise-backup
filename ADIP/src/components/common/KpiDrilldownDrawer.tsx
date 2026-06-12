@@ -150,118 +150,184 @@ export function KpiDrilldownDrawer() {
           </Box>
 
           <Box sx={{ flex: 1, overflow: 'auto', p: 2.25 }}>
-            <SectionTitle>Historical Trend</SectionTitle>
-            <Box
-              sx={{
-                height: 112,
-                mb: 2.5,
-                p: 1,
-                borderRadius: 1,
-                bgcolor: colors.bg.glass,
-                border: `1px solid ${colors.border.subtle}`,
-              }}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={payload.historicalTrend}>
-                  <defs>
-                    <linearGradient id="kpi-drilldown-trend" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={colors.primary} stopOpacity={0.4} />
-                      <stop offset="100%" stopColor={colors.primary} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke={colors.primary}
-                    strokeWidth={1.5}
-                    fill="url(#kpi-drilldown-trend)"
-                    dot={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </Box>
-
-            <SectionTitle>Source Records</SectionTitle>
-            <Box sx={{ mb: 2.5 }}>
-              {payload.sourceRecords.length > 0 ? (
-                payload.sourceRecords.map((r) => (
-                  <RecordRow
-                    key={r.id}
-                    id={r.id}
-                    title={r.title}
-                    detail={r.detail}
-                    meta={r.meta}
-                    severity={['critical', 'high', 'medium', 'low'].includes(r.meta?.toLowerCase() ?? '') ? r.meta : undefined}
-                  />
-                ))
-              ) : (
-                <Typography variant="caption" sx={{ color: '#FFFFFF', fontSize: '0.82rem' }}>No source records available.</Typography>
-              )}
-            </Box>
-
-            <SectionTitle>Supporting Evidence</SectionTitle>
-            <Box sx={{ mb: 2.5 }}>
-              {payload.supportingEvidence.map((line) => (
-                <Typography
-                  key={line}
-                  variant="body2"
-                  sx={{ fontSize: '0.86rem', mb: 1, lineHeight: 1.5, pl: 1.25, borderLeft: `2px solid ${colors.info}`, color: '#FFFFFF', fontWeight: 600 }}
-                >
-                  {line}
-                </Typography>
-              ))}
-            </Box>
-
-            <SectionTitle>Related Applications</SectionTitle>
-            <Box sx={{ mb: 2.5, display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-              {payload.relatedApplications.map((app) => (
+            {payload.customMode ? (
+              <>
+                <SectionTitle>{payload.customTrendTitle ?? 'Trend'}</SectionTitle>
                 <Box
-                  key={app.name}
                   sx={{
-                    px: 1,
-                    py: 0.5,
+                    height: 112,
+                    mb: 1.2,
+                    p: 1,
                     borderRadius: 1,
                     bgcolor: colors.bg.glass,
                     border: `1px solid ${colors.border.subtle}`,
-                    fontSize: '0.8rem',
-                    color: '#FFFFFF',
-                    fontWeight: 700,
                   }}
                 >
-                  {app.name}
-                  {app.status && (
-                    <Typography component="span" variant="caption" sx={{ ml: 0.5, color: colors.info, fontWeight: 700 }}>
-                      · {app.status}
-                    </Typography>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={payload.historicalTrend}>
+                      <defs>
+                        <linearGradient id="kpi-drilldown-trend" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={colors.primary} stopOpacity={0.4} />
+                          <stop offset="100%" stopColor={colors.primary} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke={colors.primary}
+                        strokeWidth={1.5}
+                        fill="url(#kpi-drilldown-trend)"
+                        dot={false}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </Box>
+                {payload.customTrendExplanation && (
+                  <Typography variant="body2" sx={{ fontSize: '0.84rem', mb: 2.2, color: '#FFFFFF', lineHeight: 1.45, fontWeight: 600 }}>
+                    {payload.customTrendExplanation}
+                  </Typography>
+                )}
+                {payload.customSections?.map((section) => (
+                  <Box key={section.title} sx={{ mb: 2.2 }}>
+                    <SectionTitle>{section.title}</SectionTitle>
+                    {section.bullets?.map((line) => (
+                      <Typography
+                        key={line}
+                        variant="body2"
+                        sx={{ fontSize: '0.84rem', mb: 0.7, lineHeight: 1.45, pl: 1.25, borderLeft: `2px solid ${colors.info}`, color: '#FFFFFF', fontWeight: 600 }}
+                      >
+                        {line}
+                      </Typography>
+                    ))}
+                    {section.records?.map((r) => (
+                      <RecordRow
+                        key={r.id}
+                        id={r.id}
+                        title={r.title}
+                        detail={r.detail}
+                        meta={r.meta}
+                        severity={['critical', 'high', 'medium', 'low'].includes(r.meta?.toLowerCase() ?? '') ? r.meta : undefined}
+                      />
+                    ))}
+                  </Box>
+                ))}
+              </>
+            ) : (
+              <>
+                <SectionTitle>Historical Trend</SectionTitle>
+                <Box
+                  sx={{
+                    height: 112,
+                    mb: 2.5,
+                    p: 1,
+                    borderRadius: 1,
+                    bgcolor: colors.bg.glass,
+                    border: `1px solid ${colors.border.subtle}`,
+                  }}
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={payload.historicalTrend}>
+                      <defs>
+                        <linearGradient id="kpi-drilldown-trend" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={colors.primary} stopOpacity={0.4} />
+                          <stop offset="100%" stopColor={colors.primary} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke={colors.primary}
+                        strokeWidth={1.5}
+                        fill="url(#kpi-drilldown-trend)"
+                        dot={false}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </Box>
+
+                <SectionTitle>Source Records</SectionTitle>
+                <Box sx={{ mb: 2.5 }}>
+                  {payload.sourceRecords.length > 0 ? (
+                    payload.sourceRecords.map((r) => (
+                      <RecordRow
+                        key={r.id}
+                        id={r.id}
+                        title={r.title}
+                        detail={r.detail}
+                        meta={r.meta}
+                        severity={['critical', 'high', 'medium', 'low'].includes(r.meta?.toLowerCase() ?? '') ? r.meta : undefined}
+                      />
+                    ))
+                  ) : (
+                    <Typography variant="caption" sx={{ color: '#FFFFFF', fontSize: '0.82rem' }}>No source records available.</Typography>
                   )}
                 </Box>
-              ))}
-            </Box>
 
-            <SectionTitle>Related Incidents</SectionTitle>
-            <Box sx={{ mb: 2.5 }}>
-              {payload.relatedIncidents.map((inc) => (
-                <RecordRow
-                  key={inc.id}
-                  id={inc.id}
-                  title={inc.title}
-                  detail={inc.domain}
-                  severity={inc.severity}
-                />
-              ))}
-            </Box>
+                <SectionTitle>Supporting Evidence</SectionTitle>
+                <Box sx={{ mb: 2.5 }}>
+                  {payload.supportingEvidence.map((line) => (
+                    <Typography
+                      key={line}
+                      variant="body2"
+                      sx={{ fontSize: '0.86rem', mb: 1, lineHeight: 1.5, pl: 1.25, borderLeft: `2px solid ${colors.info}`, color: '#FFFFFF', fontWeight: 600 }}
+                    >
+                      {line}
+                    </Typography>
+                  ))}
+                </Box>
 
-            <SectionTitle>Related Releases</SectionTitle>
-            <Box>
-              {payload.relatedReleases.map((rel) => (
-                <RecordRow
-                  key={rel.id}
-                  id={rel.id}
-                  title={rel.name}
-                  meta={`${rel.confidence}% · ${rel.risk} risk`}
-                />
-              ))}
-            </Box>
+                <SectionTitle>Related Applications</SectionTitle>
+                <Box sx={{ mb: 2.5, display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                  {payload.relatedApplications.map((app) => (
+                    <Box
+                      key={app.name}
+                      sx={{
+                        px: 1,
+                        py: 0.5,
+                        borderRadius: 1,
+                        bgcolor: colors.bg.glass,
+                        border: `1px solid ${colors.border.subtle}`,
+                        fontSize: '0.8rem',
+                        color: '#FFFFFF',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {app.name}
+                      {app.status && (
+                        <Typography component="span" variant="caption" sx={{ ml: 0.5, color: colors.info, fontWeight: 700 }}>
+                          · {app.status}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+
+                <SectionTitle>Related Incidents</SectionTitle>
+                <Box sx={{ mb: 2.5 }}>
+                  {payload.relatedIncidents.map((inc) => (
+                    <RecordRow
+                      key={inc.id}
+                      id={inc.id}
+                      title={inc.title}
+                      detail={inc.domain}
+                      severity={inc.severity}
+                    />
+                  ))}
+                </Box>
+
+                <SectionTitle>Related Releases</SectionTitle>
+                <Box>
+                  {payload.relatedReleases.map((rel) => (
+                    <RecordRow
+                      key={rel.id}
+                      id={rel.id}
+                      title={rel.name}
+                      meta={`${rel.confidence}% · ${rel.risk} risk`}
+                    />
+                  ))}
+                </Box>
+              </>
+            )}
           </Box>
         </Box>
       )}

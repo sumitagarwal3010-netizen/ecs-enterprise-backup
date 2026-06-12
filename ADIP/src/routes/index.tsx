@@ -9,6 +9,9 @@ import { TestingHub } from '../pages/TestingHub';
 import { ReleaseCenter } from '../pages/ReleaseCenter';
 import { ProductionCenter } from '../pages/ProductionCenter';
 import { OperationsCenter } from '../pages/OperationsCenter';
+import { OperationsIncidentsPage } from '../pages/OperationsIncidentsPage';
+import { OperationsAvailabilityPage } from '../pages/OperationsAvailabilityPage';
+import { OperationsCapacityPage } from '../pages/OperationsCapacityPage';
 import { PortfolioHealthPage } from '../pages/PortfolioHealthPage';
 import { GovernanceCenter } from '../pages/GovernanceCenter';
 import { GovernanceCompliancePage } from '../pages/GovernanceCompliancePage';
@@ -20,6 +23,9 @@ import { PromptGovernance } from '../pages/PromptGovernance';
 import { AIRiskDashboard } from '../pages/AIRiskDashboard';
 import { AIProgramStatusPage } from '../pages/AIProgramStatusPage';
 import { LearningHub } from '../pages/LearningHub';
+import { BestPracticesPage } from '../pages/BestPracticesPage';
+import { ReusableAssetsPage } from '../pages/ReusableAssetsPage';
+import { LessonsLearnedPage } from '../pages/LessonsLearnedPage';
 import { Reports } from '../pages/Reports';
 import { ComplianceReports } from '../pages/ComplianceReports';
 import { AuditReports } from '../pages/AuditReports';
@@ -45,9 +51,9 @@ export function AppRoutes() {
         <Route path="release" element={<ReleaseCenter />} />
         <Route path="production" element={<ProductionCenter />} />
         <Route path="operations" element={<OperationsCenter />} />
-        <Route path="operations/incidents" element={<ComingSoon title="Incidents" hub="Operations Hub" />} />
-        <Route path="operations/availability" element={<ComingSoon title="Availability" hub="Operations Hub" />} />
-        <Route path="operations/capacity" element={<PortfolioHealthPage />} />
+        <Route path="operations/incidents" element={<OperationsIncidentsPage />} />
+        <Route path="operations/availability" element={<OperationsAvailabilityPage />} />
+        <Route path="operations/capacity" element={<OperationsCapacityPage />} />
         <Route path="governance" element={<GovernanceCenter />} />
         <Route path="governance/compliance" element={<GovernanceCompliancePage />} />
         <Route path="governance/risk" element={<GovernanceRiskPage />} />
@@ -59,9 +65,9 @@ export function AppRoutes() {
         <Route path="ai-governance/ai-controls" element={<AIProgramStatusPage />} />
         <Route path="ai-governance/ai-incidents" element={<ComingSoon title="AI Incidents" hub="AI Governance Hub" />} />
         <Route path="learning" element={<LearningHub />} />
-        <Route path="knowledge/best-practices" element={<ComingSoon title="Best Practices" hub="Knowledge Hub" />} />
-        <Route path="knowledge/reusable-assets" element={<ComingSoon title="Reusable Assets" hub="Knowledge Hub" />} />
-        <Route path="knowledge/lessons-learned" element={<ComingSoon title="Lessons Learned" hub="Knowledge Hub" />} />
+        <Route path="knowledge/best-practices" element={<BestPracticesPage />} />
+        <Route path="knowledge/reusable-assets" element={<ReusableAssetsPage />} />
+        <Route path="knowledge/lessons-learned" element={<LessonsLearnedPage />} />
         <Route path="reports" element={<Reports />} />
         <Route path="reports/compliance" element={<ComplianceReports />} />
         <Route path="reports/audit" element={<AuditReports />} />

@@ -6,19 +6,24 @@ import { ModuleHeader } from '../components/common/ModuleHeader';
 import { SeverityChip } from '../components/common/SeverityChip';
 import { AIInsightBox } from '../components/common/AIInsightBox';
 import { colors } from '../theme/colors';
-import { useFilteredSimulation } from '../hooks/useFilteredSimulation';
+import {
+  getLearningKpis,
+  lessonsCaptured,
+  reusableAssetsCreated,
+  similarChanges,
+} from '../data/learningHubData';
 
 export function LearningHub() {
   const [tab, setTab] = useState(0);
-  const { learning } = useFilteredSimulation();
+  const learningKpis = getLearningKpis();
 
   return (
     <Box>
       <Grid container spacing={1.5}>
-        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Lessons Learned" value={learning.lessonsLearned} trend={10} /></Grid>
-        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Reusable Assets" value={learning.reusableAssets} trend={6} /></Grid>
-        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Similar Incidents" value={learning.similarIncidents} suffix="" /></Grid>
-        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Tech Debt Logged" value={learning.techDebtIdentified} suffix="" /></Grid>
+        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Lessons Captured" value={learningKpis.lessonsCapturedCount} suffix="" trend={9} /></Grid>
+        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Reusable Assets Created" value={learningKpis.reusableAssetsCount} suffix="" trend={6} /></Grid>
+        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Knowledge Reuse Rate" value={learningKpis.knowledgeReuseRate} trend={4} /></Grid>
+        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Tech Debt Logged" value={learningKpis.techDebtLogged} suffix="" trend={3} /></Grid>
       </Grid>
 
       <GlassCard sx={{ p: 2, mt: 1.5 }}>
@@ -27,24 +32,67 @@ export function LearningHub() {
           <Tab label="Reusable Assets" />
           <Tab label="Similar Changes" />
         </Tabs>
-        {tab === 0 && learning.incidents.map((inc) => (
-          <Box key={inc.title} sx={{ display: 'flex', gap: 2, py: 0.75, borderBottom: `1px solid ${colors.border.subtle}` }}>
-            <Typography variant="caption" sx={{ flex: 1 }}>{inc.title}</Typography>
-            <Typography variant="caption" color="text.secondary">{inc.date}</Typography>
-            <SeverityChip severity={inc.severity} />
+        {tab === 0 && lessonsCaptured.slice(0, 12).map((lesson) => (
+          <Box
+            key={lesson.id}
+            sx={{
+              display: 'flex',
+              gap: 2,
+              py: 0.9,
+              px: 1,
+              borderRadius: 1,
+              borderBottom: `1px solid ${colors.border.subtle}`,
+              cursor: 'pointer',
+              transition: 'background-color 120ms ease',
+              '&:hover': { bgcolor: colors.bg.glass },
+            }}
+          >
+            <Typography variant="caption" sx={{ flex: 1, color: colors.text.primary, fontWeight: 700 }}>
+              {lesson.title}
+            </Typography>
+            <Typography variant="caption" sx={{ color: colors.text.secondary, fontWeight: 500 }}>
+              {lesson.source} · {lesson.date}
+            </Typography>
+            <Box sx={{ '& .MuiChip-root': { fontWeight: 800, borderWidth: 1.25 } }}>
+              <SeverityChip severity={lesson.severity} />
+            </Box>
           </Box>
         ))}
-        {tab === 1 && learning.knowledgeBase.map((kb) => (
-          <Box key={kb.title} sx={{ display: 'flex', gap: 2, py: 0.75, borderBottom: `1px solid ${colors.border.subtle}` }}>
-            <Typography variant="caption" sx={{ flex: 1, fontWeight: 600 }}>{kb.title}</Typography>
-            <Typography variant="caption" color="text.secondary">{kb.category}</Typography>
-            <Typography variant="caption" sx={{ color: colors.primary }}>{kb.views} views</Typography>
+        {tab === 1 && reusableAssetsCreated.map((asset) => (
+          <Box
+            key={asset.id}
+            sx={{
+              display: 'flex',
+              gap: 2,
+              py: 0.9,
+              px: 1,
+              borderRadius: 1,
+              borderBottom: `1px solid ${colors.border.subtle}`,
+              cursor: 'pointer',
+              transition: 'background-color 120ms ease',
+              '&:hover': { bgcolor: colors.bg.glass },
+            }}
+          >
+            <Typography variant="caption" sx={{ flex: 1, fontWeight: 700, color: colors.text.primary }}>{asset.title}</Typography>
+            <Typography variant="caption" sx={{ color: colors.text.secondary, fontWeight: 500 }}>{asset.source}</Typography>
+            <Typography variant="caption" sx={{ color: colors.primary, fontWeight: 700 }}>{asset.reuseCount} reuses</Typography>
           </Box>
         ))}
-        {tab === 2 && learning.recentLessons.map((l) => (
-          <Box key={l.text} sx={{ mb: 1 }}>
-            <Typography variant="caption">{l.text}</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.6rem', display: 'block' }}>{l.time}</Typography>
+        {tab === 2 && similarChanges.map((item) => (
+          <Box
+            key={item.text}
+            sx={{
+              mb: 1,
+              py: 0.8,
+              px: 1,
+              borderRadius: 1,
+              cursor: 'pointer',
+              transition: 'background-color 120ms ease',
+              '&:hover': { bgcolor: colors.bg.glass },
+            }}
+          >
+            <Typography variant="caption" sx={{ color: colors.text.primary, fontWeight: 650 }}>{item.text}</Typography>
+            <Typography variant="caption" sx={{ color: colors.text.secondary, fontSize: '0.65rem', display: 'block', mt: 0.35 }}>{item.time}</Typography>
           </Box>
         ))}
       </GlassCard>
@@ -53,10 +101,21 @@ export function LearningHub() {
         <Grid size={{ xs: 12, md: 8 }}>
           <GlassCard sx={{ p: 2 }}>
             <ModuleHeader title="Knowledge Base" />
-            {learning.knowledgeBase.map((kb) => (
-              <Box key={kb.title} sx={{ py: 1, borderBottom: `1px solid ${colors.border.subtle}` }}>
-                <Typography variant="caption" sx={{ fontWeight: 600 }}>{kb.title}</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>{kb.category}</Typography>
+            {reusableAssetsCreated.map((asset) => (
+              <Box
+                key={asset.id}
+                sx={{
+                  py: 1,
+                  px: 1,
+                  borderRadius: 1,
+                  borderBottom: `1px solid ${colors.border.subtle}`,
+                  cursor: 'pointer',
+                  transition: 'background-color 120ms ease',
+                  '&:hover': { bgcolor: colors.bg.glass },
+                }}
+              >
+                <Typography variant="caption" sx={{ fontWeight: 700, color: colors.text.primary }}>{asset.title}</Typography>
+                <Typography variant="caption" sx={{ ml: 1.2, color: colors.text.secondary, fontWeight: 500 }}>{asset.source}</Typography>
               </Box>
             ))}
           </GlassCard>
@@ -64,13 +123,18 @@ export function LearningHub() {
         <Grid size={{ xs: 12, md: 4 }}>
           <GlassCard sx={{ p: 2 }}>
             <ModuleHeader title="Learning Analytics" />
-            {learning.analytics.map((m) => (
-              <Box key={m.label} sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: `1px solid ${colors.border.subtle}` }}>
-                <Typography variant="caption">{m.label}</Typography>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: colors.success }}>{m.value}</Typography>
+            {[
+              { label: 'Lessons captured this cycle', value: String(learningKpis.lessonsCapturedCount) },
+              { label: 'Assets created', value: String(learningKpis.reusableAssetsCount) },
+              { label: 'Knowledge reuse', value: `${learningKpis.knowledgeReuseRate}%` },
+              { label: 'Tech debt logged', value: String(learningKpis.techDebtLogged) },
+            ].map((metric) => (
+              <Box key={metric.label} sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: `1px solid ${colors.border.subtle}` }}>
+                <Typography variant="caption" sx={{ color: colors.text.secondary }}>{metric.label}</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: colors.success }}>{metric.value}</Typography>
               </Box>
             ))}
-            <AIInsightBox insight="UPI settlement playbook reused 8 times post-incident — highest adoption this quarter." />
+            <AIInsightBox insight="Fraud Engine and UPI Switch learning assets drive the highest reuse, with incident and capacity playbooks accounting for most adoption." />
           </GlassCard>
         </Grid>
       </Grid>

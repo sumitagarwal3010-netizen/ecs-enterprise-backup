@@ -30,6 +30,8 @@ import {
   createInitialState,
   clamp,
 } from './mockDataEngine.js';
+import { operationalRiskRegister } from '../data/operationalRiskHeatRegisterData.ts';
+import { calculatePortfolioHealthScore } from '../data/portfolioHealthDrilldownData.ts';
 
 const REFRESH_MS = 30_000;
 const SIM_MINUTES_PER_TICK = 30;
@@ -454,9 +456,12 @@ function deriveExecutive(prev, d, channels, derived) {
       trend: derived.openIncidents < prev.openIncidents ? -12 : 6,
     },
     {
-      label: 'Open Risks',
-      value: derived.openRisks,
-      trend: derived.openRisks > prev.openRisks ? 4 : -3,
+      label: 'Release Confidence',
+      value: round(derived.releaseConfidence, 0),
+      trend: round(
+        derived.releaseConfidence - (prev.scorecard?.find((item) => item.label === 'Release Confidence')?.value ?? derived.releaseConfidence),
+        1,
+      ),
     },
   ];
 
@@ -945,19 +950,12 @@ export function tickSimulation(state) {
     70, 97,
   );
 
-  const openRisks = clamp(
-    8 + d.atRiskReleaseIds.length * 2 + sev.high + sev.critical * 2 + Math.round(d.testingBacklog * 4),
-    8, 24,
-  );
+  const openRisks = operationalRiskRegister.length;
   const businessImpactScore = clamp(
     90 - openIncidents * 1.2 - sev.critical * 3 - d.atRiskReleaseIds.length * 1.5,
     65, 95,
   );
-  const portfolioHealth = clamp(
-    (paymentsHealth * 0.45 + netBankingHealth * 0.30 + mobileBankingHealth * 0.25) -
-      criticalIncidents * 1.5,
-    72, 96,
-  );
+  const portfolioHealth = calculatePortfolioHealthScore();
 
   const derived = {
     paymentsHealth, netBankingHealth, mobileBankingHealth,
@@ -1018,8 +1016,8 @@ export function tickSimulation(state) {
 
 export function startSimulation(onTick) {
   stopSimulation();
-  let state = bootstrapDrivers(createInitialState());
-  // emit once immediately with the initial state so UI is populated, then tick.
+  let state = tickSimulation(bootstrapDrivers(createInitialState()));
+  // emit once with computed state so KPI scores are derived, not hardcoded.
   onTick(state);
   intervalId = setInterval(() => {
     state = tickSimulation(state);

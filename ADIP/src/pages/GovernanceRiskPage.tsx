@@ -10,22 +10,18 @@ import {
   Typography,
 } from '@mui/material';
 import { KpiCard } from '../components/common/KpiCard';
+import { DrilldownTableRow } from '../components/common/DrilldownTableRow';
 import { GlassCard } from '../components/common/GlassCard';
 import { ModuleHeader } from '../components/common/ModuleHeader';
 import { colors } from '../theme/colors';
+import { getGovernanceRiskKpis, operationalRiskRegister } from '../data/operationalRiskHeatRegisterData';
 
+const riskKpis = getGovernanceRiskKpis();
 const kpis = [
-  { label: 'Enterprise Risks', value: 31, suffix: '', trend: -3.1 },
-  { label: 'High Risk Items', value: 8, suffix: '', trend: -11.1 },
-  { label: 'Mitigation Plans Due', value: 5, suffix: '', trend: -16.7 },
-  { label: 'Residual Risk Score', value: 64, trend: -2.4 },
-];
-
-const rows = [
-  { risk: 'UPI outage concentration in peak window', domain: 'Payments', owner: 'SRE Banking', severity: 'High' },
-  { risk: 'Delayed patching on internet-facing middleware', domain: 'Infrastructure', owner: 'Platform Security', severity: 'Critical' },
-  { risk: 'Fraud model false-positive surge', domain: 'Fraud Monitoring', owner: 'Fraud Analytics', severity: 'Medium' },
-  { risk: 'Batch reconciliation delay for loan postings', domain: 'Core Lending', owner: 'Loan Operations Tech', severity: 'Medium' },
+  { label: 'Enterprise Risks', value: riskKpis.enterpriseRisks, suffix: '', trend: -3.1 },
+  { label: 'High Risk Items', value: riskKpis.highRiskItems, suffix: '', trend: -11.1 },
+  { label: 'Mitigation Plans Due', value: riskKpis.mitigationPlansDue, suffix: '', trend: -16.7 },
+  { label: 'Residual Risk Score', value: riskKpis.residualRiskScore, trend: -2.4 },
 ];
 
 function severityStyle(severity: string) {
@@ -58,12 +54,14 @@ export function GovernanceRiskPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((row) => {
+              {operationalRiskRegister.map((row) => {
                 const s = severityStyle(row.severity);
                 return (
-                  <TableRow key={row.risk} hover sx={{ '&:hover td': { bgcolor: colors.bg.glass } }}>
+                  <TableRow key={row.id} hover sx={{ '&:hover td': { bgcolor: colors.bg.glass } }}>
                     <TableCell sx={{ borderColor: colors.border.subtle }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600, color: colors.text.primary }}>{row.risk}</Typography>
+                      <DrilldownTableRow chartId="governance-risk.register" segment={row.id} label={row.title} value={row.residualRiskScore} suffix="">
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: colors.text.primary }}>{row.title}</Typography>
+                      </DrilldownTableRow>
                     </TableCell>
                     <TableCell sx={{ borderColor: colors.border.subtle, color: colors.text.secondary }}>{row.domain}</TableCell>
                     <TableCell sx={{ borderColor: colors.border.subtle, color: colors.text.secondary }}>{row.owner}</TableCell>

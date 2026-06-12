@@ -9,17 +9,25 @@ import { StatusDot } from '../components/common/StatusDot';
 import { AIInsightBox } from '../components/common/AIInsightBox';
 import { colors } from '../theme/colors';
 import { useFilteredSimulation } from '../hooks/useFilteredSimulation';
+import {
+  getIncidentOperationsKpis,
+  getOpenIncidents,
+  incidentOperationsData,
+  incidentTrend7d,
+} from '../data/incidentOperationsData';
 
 export function ProductionCenter() {
   const { production } = useFilteredSimulation();
+  const incidentKpis = getIncidentOperationsKpis();
+  const openIncidents = getOpenIncidents();
 
   return (
     <Box>
       <Grid container spacing={1.5}>
         <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Availability" value={production.availability} trend={0.01} /></Grid>
-        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="MTTR" value={`${production.mttrMinutes}m`} suffix="" trend={-5} /></Grid>
-        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Service Health" value={production.health} trend={1} /></Grid>
-        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Open Incidents" value={production.activeIncidents} suffix="" trend={-12} /></Grid>
+        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="MTTR" value={`${incidentKpis.mttrMinutes}m`} suffix="" trend={-5} data={incidentTrend7d} /></Grid>
+        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Critical Incidents" value={incidentKpis.criticalIncidents} suffix="" trend={-16} data={incidentTrend7d.map((point) => ({ day: point.day, value: point.day === 'Mon' || point.day === 'Tue' ? 2 : 1 }))} /></Grid>
+        <Grid size={{ xs: 6, md: 3 }}><KpiCard label="Open Incidents" value={incidentKpis.openIncidents} suffix="" trend={-12} data={incidentTrend7d} /></Grid>
       </Grid>
 
       <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
@@ -28,7 +36,7 @@ export function ProductionCenter() {
             <ModuleHeader title="Incident Trend (7 days)" />
             <BarChartPanel
               chartId="production.incident-trend"
-              data={production.incidentTrend}
+              data={incidentTrend7d.map((point) => ({ day: point.day, count: point.value }))}
               categoryKey="day"
               series={[{ dataKey: 'count', name: 'Incidents', fill: colors.critical, barSize: 32, radius: [4, 4, 0, 0] }]}
               height={200}
@@ -62,12 +70,12 @@ export function ProductionCenter() {
         <Grid size={{ xs: 12, md: 6 }}>
           <GlassCard sx={{ p: 2 }}>
             <ModuleHeader title="Open Incidents" />
-            {production.openIncidents.map((inc) => (
+            {openIncidents.map((inc) => (
               <DrilldownTableRow
                 key={inc.id}
                 chartId="production.open-incidents"
                 segment={inc.id}
-                label={inc.title}
+                label={inc.service}
                 value={inc.id}
                 sx={{ p: 1, mb: 0.75, borderRadius: 1, border: `1px solid ${colors.border.subtle}` }}
               >
@@ -75,8 +83,8 @@ export function ProductionCenter() {
                   <Typography variant="caption" sx={{ fontWeight: 700 }}>{inc.id}</Typography>
                   <SeverityChip severity={inc.severity} />
                 </Box>
-                <Typography variant="caption">{inc.title}</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block' }}>{inc.domain} · {inc.status}</Typography>
+                <Typography variant="caption">{inc.service}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block' }}>{inc.owner} · {inc.status}</Typography>
               </DrilldownTableRow>
             ))}
           </GlassCard>
@@ -84,9 +92,9 @@ export function ProductionCenter() {
         <Grid size={{ xs: 12, md: 6 }}>
           <GlassCard sx={{ p: 2 }}>
             <ModuleHeader title="Top Issues & RCA" />
-            {production.topIssues.map((item) => (
-              <Box key={item.issue} sx={{ mb: 1.5 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>{item.issue}</Typography>
+            {incidentOperationsData.slice(0, 3).map((item) => (
+              <Box key={item.id} sx={{ mb: 1.5 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>{item.service}</Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', lineHeight: 1.5 }}>{item.rca}</Typography>
               </Box>
             ))}

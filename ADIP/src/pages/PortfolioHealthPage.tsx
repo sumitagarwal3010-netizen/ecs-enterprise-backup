@@ -14,27 +14,41 @@ import { GlassCard } from '../components/common/GlassCard';
 import { ModuleHeader } from '../components/common/ModuleHeader';
 import { MultiLineChart } from '../components/charts/MultiLineChart';
 import { colors } from '../theme/colors';
+import { useFilteredSimulation } from '../hooks/useFilteredSimulation';
+import {
+  atRiskProjects,
+  criticalEscalations,
+  escalationTrend,
+  getPortfolioHealthKpis,
+  onTrackTrend,
+  onTrackProjects,
+  portfolioHealthTrend,
+} from '../data/portfolioHealthDrilldownData';
 
+const portfolioKpis = getPortfolioHealthKpis();
 const kpis = [
-  { label: 'Portfolio Health Score', value: 88, trend: 2.3 },
-  { label: 'Projects On Track', value: 9, suffix: '', trend: 12.5 },
-  { label: 'Projects At Risk', value: 3, suffix: '', trend: -14.3 },
-  { label: 'Critical Escalations', value: 1, suffix: '', trend: -50.0 },
+  { label: 'Portfolio Health Score', value: portfolioKpis.portfolioHealthScore, trend: 2.3 },
+  { label: 'Projects On Track', value: portfolioKpis.projectsOnTrack, suffix: '', trend: 12.5 },
+  { label: 'Projects At Risk', value: portfolioKpis.projectsAtRisk, suffix: '', trend: -14.3 },
+  { label: 'Critical Escalations', value: portfolioKpis.criticalEscalations, suffix: '', trend: -50.0 },
 ];
 
-const portfolioTrend = [
-  { month: 'Jul', health: 79, onTrack: 6, atRisk: 6 },
-  { month: 'Aug', health: 80, onTrack: 6, atRisk: 5 },
-  { month: 'Sep', health: 81, onTrack: 7, atRisk: 5 },
-  { month: 'Oct', health: 82, onTrack: 7, atRisk: 4 },
-  { month: 'Nov', health: 83, onTrack: 8, atRisk: 4 },
-  { month: 'Dec', health: 84, onTrack: 8, atRisk: 4 },
-  { month: 'Jan', health: 85, onTrack: 8, atRisk: 4 },
-  { month: 'Feb', health: 86, onTrack: 9, atRisk: 3 },
-  { month: 'Mar', health: 86, onTrack: 9, atRisk: 3 },
-  { month: 'Apr', health: 87, onTrack: 9, atRisk: 3 },
-  { month: 'May', health: 87, onTrack: 9, atRisk: 3 },
-  { month: 'Jun', health: 88, onTrack: 9, atRisk: 3 },
+const compactTrendSummaries = [
+  {
+    label: 'Projects On Track',
+    value: onTrackProjects.length,
+    trend: onTrackTrend[onTrackTrend.length - 1].value - onTrackTrend[onTrackTrend.length - 2].value,
+  },
+  {
+    label: 'Projects At Risk',
+    value: atRiskProjects.length,
+    trend: -1,
+  },
+  {
+    label: 'Critical Escalations',
+    value: criticalEscalations.length,
+    trend: escalationTrend[escalationTrend.length - 1].value - escalationTrend[escalationTrend.length - 2].value,
+  },
 ];
 
 const portfolioPrograms = [
@@ -44,6 +58,7 @@ const portfolioPrograms = [
   { project: 'Enterprise Fraud Detection Revamp', healthScore: 83, risk: 'Medium', owner: 'Neha Iyer', status: 'Watchlist' },
   { project: 'Trade Finance Workflow Automation', healthScore: 82, risk: 'Medium', owner: 'Karthik Nair', status: 'Watchlist' },
   { project: 'Card Switch Resilience Program', healthScore: 76, risk: 'High', owner: 'Mehul Desai', status: 'At Risk' },
+  { project: 'Executive Escalations (Active)', healthScore: 74, risk: 'High', owner: 'Executive Steering Group', status: `${criticalEscalations.length} Open` },
 ];
 
 function riskStyle(risk: string) {
@@ -59,6 +74,15 @@ function statusStyle(status: string) {
 }
 
 export function PortfolioHealthPage() {
+  const { release, governance, testing } = useFilteredSimulation();
+  const portfolioTrend = portfolioHealthTrend.map((item, idx) => ({
+    month: item.day,
+    health: item.value,
+    releaseReadiness: Math.max(82, Math.round(release.confidence - (5 - idx))),
+    controlCoverage: Math.max(90, Math.round(governance.policyCompliance - (4 - idx))),
+    testQuality: Math.max(88, Math.round(testing.effectiveness - (5 - idx))),
+  }));
+
   return (
     <Box>
       <Grid container spacing={1.5}>
@@ -70,16 +94,44 @@ export function PortfolioHealthPage() {
       </Grid>
 
       <GlassCard sx={{ p: 2, mt: 1.5 }}>
-        <ModuleHeader title="Portfolio Health Trend (12 Months)" subtitle="Banking transformation portfolio trajectory" />
+        <ModuleHeader title="Portfolio Health Trend" subtitle="Health score with percentage-based contributing metrics" />
         <MultiLineChart
           data={portfolioTrend}
           series={[
             { key: 'health', color: colors.primary, name: 'Health Score' },
-            { key: 'onTrack', color: colors.success, name: 'Projects On Track' },
-            { key: 'atRisk', color: colors.critical, name: 'Projects At Risk' },
+            { key: 'releaseReadiness', color: colors.info, name: 'Release Readiness %' },
+            { key: 'controlCoverage', color: colors.success, name: 'Control Coverage %' },
+            { key: 'testQuality', color: colors.warning, name: 'Test Quality %' },
           ]}
           height={240}
         />
+        <Grid container spacing={1} sx={{ mt: 1 }}>
+          {compactTrendSummaries.map((item) => (
+            <Grid key={item.label} size={{ xs: 12, md: 4 }}>
+              <Box sx={{ p: 1, borderRadius: 1, border: `1px solid ${colors.border.subtle}`, bgcolor: colors.bg.glass }}>
+                <Typography variant="caption" sx={{ color: colors.text.secondary, textTransform: 'uppercase', fontSize: '0.68rem', letterSpacing: '0.04em' }}>
+                  {item.label}
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.25 }}>
+                  <Typography variant="subtitle1" sx={{ color: '#FFFFFF', fontWeight: 800 }}>{item.value}</Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      px: 0.7,
+                      py: 0.2,
+                      borderRadius: 1,
+                      fontWeight: 700,
+                      color: item.trend > 0 ? colors.success : item.trend < 0 ? colors.critical : colors.info,
+                      bgcolor: item.trend > 0 ? `${colors.success}22` : item.trend < 0 ? `${colors.critical}22` : `${colors.info}22`,
+                    }}
+                  >
+                    {item.trend > 0 ? '↑' : item.trend < 0 ? '↓' : '→'} {Math.abs(item.trend)}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
       </GlassCard>
 
       <GlassCard sx={{ p: 2, mt: 1.5 }}>

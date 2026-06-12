@@ -1,4 +1,6 @@
 import { Box, Grid, Typography, Button, LinearProgress } from '@mui/material';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { KpiCard } from '../components/common/KpiCard';
 import { DrilldownTableRow } from '../components/common/DrilldownTableRow';
@@ -6,14 +8,25 @@ import { GlassCard } from '../components/common/GlassCard';
 import { ModuleHeader } from '../components/common/ModuleHeader';
 import { SeverityChip } from '../components/common/SeverityChip';
 import { DonutChart } from '../components/charts/DonutChart';
-import { GaugeChart } from '../components/charts/GaugeChart';
 import { HorizontalBarChart } from '../components/charts/HorizontalBarChart';
 import { MultiLineChart } from '../components/charts/MultiLineChart';
 import { colors } from '../theme/colors';
 import { useFilteredSimulation } from '../hooks/useFilteredSimulation';
 
 export function ExecutiveControlTower() {
-  const { executive, release, governance, learning, dynamicInsights } = useFilteredSimulation();
+  const { executive, release, governance, learning, dynamicInsights, previous } = useFilteredSimulation();
+  const releaseConfidenceDelta = Number((release.confidence - (previous?.releaseConfidence ?? release.confidence)).toFixed(1));
+  const isConfidenceUp = releaseConfidenceDelta >= 0;
+  const openBlockers = release.checklist.filter((item) => item.status !== 'completed').length;
+  const testingReadiness = release.readiness.find((r) => r.dimension === 'Testing')?.score ?? release.confidence;
+  const deploymentReadiness = release.deploymentReadiness;
+  const governanceReadiness = release.readiness.find((r) => r.dimension === 'Governance')?.score ?? governance.policyCompliance;
+  const releaseExplanation = `Confidence ${release.confidence}% reflects testing readiness (${testingReadiness}%), deployment readiness (${deploymentReadiness}%), governance readiness (${governanceReadiness}%), and ${openBlockers} open blocker${openBlockers === 1 ? '' : 's'}.`;
+  const phaseTrendDirection = executive.riskByPhase.reduce<Record<string, 'up' | 'down' | 'flat'>>((acc, phase) => {
+    const baseline = phase.name === 'Requirements' ? 6 : phase.name === 'Architecture' ? 5 : phase.name === 'Development' ? 4 : phase.name === 'Testing' ? 3 : 3;
+    acc[phase.name] = phase.value > baseline ? 'up' : phase.value < baseline ? 'down' : 'flat';
+    return acc;
+  }, {});
 
   return (
     <Box>
@@ -110,21 +123,140 @@ export function ExecutiveControlTower() {
 
       <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <GlassCard sx={{ p: 2 }}>
+          <GlassCard sx={{ p: 2, height: '100%' }}>
             <ModuleHeader title="Risk by SDLC Phase" />
             <DonutChart chartId="executive.risk-by-phase" data={executive.riskByPhase} centerLabel="Open Risks" centerValue={executive.openRisks} height={150} />
+            <Box sx={{ mt: 0.8 }}>
+              {[
+                ...executive.riskByPhase,
+                { name: 'Release', value: release.riskMatrix.filter((r) => r.severity === 'high').length },
+                { name: 'Production', value: executive.openIncidents },
+              ].map((phase) => {
+                const dir = phaseTrendDirection[phase.name] ?? (phase.value >= 3 ? 'up' : 'down');
+                return (
+                  <Box key={`phase-${phase.name}`} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.35 }}>
+                    <Typography variant="caption" sx={{ color: '#FFFFFF', fontWeight: 700, fontSize: '0.72rem' }}>
+                      {phase.name}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: dir === 'up' ? colors.warning : dir === 'down' ? colors.success : colors.info,
+                        fontWeight: 800,
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {phase.value} {dir === 'up' ? '↑' : dir === 'down' ? '↓' : '→'}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
           </GlassCard>
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
-          <GlassCard sx={{ p: 2 }} glow="green">
-            <ModuleHeader title="Release Confidence" />
-            <GaugeChart chartId="release.confidence-gauge" value={release.confidence} label="Enterprise Avg" showGo />
+          <GlassCard sx={{ p: 2, height: '100%' }}>
+            <ModuleHeader title="Release Confidence" subtitle="Executive readiness summary" />
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', mb: 0.8 }}>
+              <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.6 }}>
+                <Typography variant="h4" sx={{ fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>
+                  {release.confidence}%
+                </Typography>
+                <Typography variant="caption" sx={{ color: colors.text.secondary, fontWeight: 700 }}>
+                  Confidence
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                {isConfidenceUp ? <TrendingUpIcon sx={{ fontSize: 14, color: colors.success }} /> : <TrendingDownIcon sx={{ fontSize: 14, color: colors.critical }} />}
+                <Typography variant="caption" sx={{ fontWeight: 800, color: isConfidenceUp ? colors.success : colors.critical }}>
+                  {isConfidenceUp ? '+' : ''}{releaseConfidenceDelta}%
+                </Typography>
+              </Box>
+            </Box>
+            <Typography variant="caption" sx={{ display: 'block', color: colors.text.secondary, fontSize: '0.72rem', lineHeight: 1.45, mb: 1 }}>
+              {releaseExplanation}
+            </Typography>
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="caption" sx={{ color: colors.info, fontWeight: 800, textTransform: 'uppercase', fontSize: '0.68rem' }}>
+                Key Contributors
+              </Typography>
+              <Typography variant="caption" sx={{ display: 'block', color: '#FFFFFF', fontWeight: 700, mt: 0.3, fontSize: '0.72rem' }}>
+                Testing {testingReadiness}% · Deployment {deploymentReadiness}% · Governance {governanceReadiness}% · Open Blockers {openBlockers}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" sx={{ color: colors.info, fontWeight: 800, textTransform: 'uppercase', fontSize: '0.68rem' }}>
+                Active Release Confidence
+              </Typography>
+              {release.releases.map((rel) => (
+                <Box key={rel.id} sx={{ mt: 0.45 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.2 }}>
+                    <Typography variant="caption" sx={{ color: '#FFFFFF', fontSize: '0.7rem', fontWeight: 700 }}>{rel.name}</Typography>
+                    <Typography variant="caption" sx={{ color: colors.text.secondary, fontSize: '0.68rem', fontWeight: 700 }}>{rel.confidence}%</Typography>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={rel.confidence}
+                    sx={{
+                      height: 5,
+                      borderRadius: 3,
+                      bgcolor: 'rgba(255,255,255,0.08)',
+                      '& .MuiLinearProgress-bar': { bgcolor: rel.risk === 'high' ? colors.critical : rel.risk === 'medium' ? colors.warning : colors.success },
+                    }}
+                  />
+                </Box>
+              ))}
+            </Box>
+            <Box sx={{ mt: 0.9 }}>
+              <Typography variant="caption" sx={{ color: colors.info, fontWeight: 800, textTransform: 'uppercase', fontSize: '0.68rem' }}>
+                Readiness and Blockers
+              </Typography>
+              <Typography variant="caption" sx={{ display: 'block', color: '#FFFFFF', fontWeight: 700, mt: 0.25, fontSize: '0.72rem' }}>
+                Top blockers: {release.checklist.filter((item) => item.status !== 'completed').map((item) => item.item).join(' · ') || 'None'}
+              </Typography>
+              <Typography variant="caption" sx={{ display: 'block', color: colors.text.secondary, mt: 0.2, fontSize: '0.7rem', fontWeight: 700 }}>
+                Upcoming milestones: CAB approval, final governance sign-off, production cutover rehearsal.
+              </Typography>
+              <Typography variant="caption" sx={{ display: 'block', color: colors.text.secondary, mt: 0.2, fontSize: '0.7rem', fontWeight: 700 }}>
+                Lower confidence drivers: {release.releases.filter((r) => r.confidence < release.confidence).map((r) => `${r.name} (${r.risk})`).join(' · ') || 'No outliers'}.
+              </Typography>
+            </Box>
           </GlassCard>
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
-          <GlassCard sx={{ p: 2 }}>
+          <GlassCard sx={{ p: 2, height: '100%' }}>
             <ModuleHeader title="Business Impact Areas" />
             <HorizontalBarChart chartId="executive.business-impact" data={executive.businessImpactAreas} height={150} barColor={colors.secondary} />
+            <Box sx={{ mt: 0.8 }}>
+              {executive.businessImpactAreas.map((area) => {
+                const trend = area.value >= executive.businessImpactScore ? 'up' : 'down';
+                const driver = area.name.includes('Customer')
+                  ? `${executive.openIncidents} open incidents influencing experience`
+                  : area.name.includes('Revenue')
+                    ? `Payments health ${executive.domainHealth.find((d) => d.name === 'Payments')?.score ?? 0}%`
+                    : area.name.includes('Regulatory')
+                      ? `Governance score ${governance.governanceScore}%`
+                      : `${release.releases.filter((r) => r.risk === 'high').length} high-risk release(s)`;
+                return (
+                  <Box key={`impact-${area.name}`} sx={{ mt: 0.35 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="caption" sx={{ color: '#FFFFFF', fontWeight: 700, fontSize: '0.72rem' }}>
+                        {area.name}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: trend === 'up' ? colors.success : colors.warning, fontWeight: 800, fontSize: '0.7rem' }}
+                      >
+                        {area.value}% {trend === 'up' ? '↑' : '↓'}
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: colors.text.secondary, fontSize: '0.68rem', fontWeight: 700 }}>
+                      {driver}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
           </GlassCard>
         </Grid>
       </Grid>

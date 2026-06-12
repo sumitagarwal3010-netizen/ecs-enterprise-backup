@@ -36,6 +36,14 @@ export interface KpiDrilldownPayload {
   relatedIncidents: KpiDrilldownIncident[];
   relatedReleases: KpiDrilldownRelease[];
   historicalTrend: SparkPoint[];
+  customMode?: boolean;
+  customTrendTitle?: string;
+  customTrendExplanation?: string;
+  customSections?: Array<{
+    title: string;
+    bullets?: string[];
+    records?: KpiDrilldownRecord[];
+  }>;
 }
 
 export interface KpiDrilldownContext {

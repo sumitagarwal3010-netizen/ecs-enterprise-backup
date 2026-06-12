@@ -14,58 +14,9 @@ import { GlassCard } from '../components/common/GlassCard';
 import { ModuleHeader } from '../components/common/ModuleHeader';
 import { MultiLineChart } from '../components/charts/MultiLineChart';
 import { colors } from '../theme/colors';
-
-const executiveKpis = [
-  {
-    label: 'Portfolio Health',
-    value: 91,
-    trend: 2.1,
-    data: [
-      { day: 'Mon', value: 87 },
-      { day: 'Tue', value: 88 },
-      { day: 'Wed', value: 89 },
-      { day: 'Thu', value: 90 },
-      { day: 'Fri', value: 91 },
-    ],
-  },
-  {
-    label: 'AI SDLC Maturity',
-    value: 84,
-    trend: 1.4,
-    data: [
-      { day: 'Mon', value: 80 },
-      { day: 'Tue', value: 81 },
-      { day: 'Wed', value: 82 },
-      { day: 'Thu', value: 83 },
-      { day: 'Fri', value: 84 },
-    ],
-  },
-  {
-    label: 'Release Success Rate',
-    value: 97.6,
-    trend: 0.8,
-    data: [
-      { day: 'Mon', value: 95.8 },
-      { day: 'Tue', value: 96.2 },
-      { day: 'Wed', value: 96.7 },
-      { day: 'Thu', value: 97.1 },
-      { day: 'Fri', value: 97.6 },
-    ],
-  },
-  {
-    label: 'Critical Risks',
-    value: 7,
-    suffix: '',
-    trend: -12.5,
-    data: [
-      { day: 'Mon', value: 10 },
-      { day: 'Tue', value: 9 },
-      { day: 'Wed', value: 9 },
-      { day: 'Thu', value: 8 },
-      { day: 'Fri', value: 7 },
-    ],
-  },
-];
+import { useFilteredSimulation } from '../hooks/useFilteredSimulation';
+import { calculatePortfolioHealthScore, portfolioHealthTrend } from '../data/portfolioHealthDrilldownData';
+import { operationalRiskRegister } from '../data/operationalRiskHeatRegisterData';
 
 const portfolioTrendData = [
   { month: 'Jan', retail: 84, cards: 81, lending: 79 },
@@ -94,6 +45,77 @@ const domainHealthTableRows = [
 ];
 
 export function Reports() {
+  const { release, requirements, architecture, development, testing, operations, governance } = useFilteredSimulation();
+  const portfolioHealth = calculatePortfolioHealthScore();
+  const maturityBase = (
+    requirements.qualityScore * 0.17 +
+    architecture.readiness * 0.16 +
+    development.health * 0.17 +
+    testing.effectiveness * 0.2 +
+    release.confidence * 0.16 +
+    operations.operationalHealth * 0.14
+  );
+  const maturityPenalty = (testing.manualTests / testing.totalTests) * 8 + (governance.findingSeverity.find((f) => f.name === 'Critical')?.value ?? 0) * 0.8;
+  const aiSdlcMaturity = Math.round(maturityBase - maturityPenalty);
+  const releaseWindowTotal = 42;
+  const highRiskReleases = release.releases.filter((r) => r.risk === 'high').length;
+  const failedReleases = Math.max(1, Math.round((100 - release.confidence) / 12 + highRiskReleases * 0.2));
+  const successfulReleases = releaseWindowTotal - failedReleases;
+  const releaseSuccessRate = Number(((successfulReleases / releaseWindowTotal) * 100).toFixed(1));
+  const criticalRisks = operationalRiskRegister
+    .filter((risk) => risk.severity === 'Critical' || risk.severity === 'High')
+    .sort((a, b) => b.residualRiskScore - a.residualRiskScore)
+    .slice(0, 7);
+
+  const executiveKpis = [
+    {
+      label: 'Portfolio Health',
+      value: portfolioHealth,
+      trend: 2.1,
+      data: portfolioHealthTrend,
+    },
+    {
+      label: 'AI SDLC Maturity',
+      value: aiSdlcMaturity,
+      trend: 1.4,
+      data: [
+        { day: 'Jan', value: Math.max(78, aiSdlcMaturity - 4) },
+        { day: 'Feb', value: Math.max(79, aiSdlcMaturity - 3) },
+        { day: 'Mar', value: Math.max(80, aiSdlcMaturity - 2) },
+        { day: 'Apr', value: Math.max(81, aiSdlcMaturity - 1) },
+        { day: 'May', value: Math.max(82, aiSdlcMaturity) },
+        { day: 'Jun', value: aiSdlcMaturity },
+      ],
+    },
+    {
+      label: 'Release Success Rate',
+      value: releaseSuccessRate,
+      trend: 0.8,
+      data: [
+        { day: 'Jan', value: Math.max(95, releaseSuccessRate - 1.8) },
+        { day: 'Feb', value: Math.max(95.4, releaseSuccessRate - 1.4) },
+        { day: 'Mar', value: Math.max(95.8, releaseSuccessRate - 1.1) },
+        { day: 'Apr', value: Math.max(96.3, releaseSuccessRate - 0.7) },
+        { day: 'May', value: Math.max(96.8, releaseSuccessRate - 0.4) },
+        { day: 'Jun', value: releaseSuccessRate },
+      ],
+    },
+    {
+      label: 'Critical Risks',
+      value: criticalRisks.length,
+      suffix: '',
+      trend: -12.5,
+      data: [
+        { day: 'Jan', value: 10 },
+        { day: 'Feb', value: 9 },
+        { day: 'Mar', value: 9 },
+        { day: 'Apr', value: 8 },
+        { day: 'May', value: 8 },
+        { day: 'Jun', value: criticalRisks.length },
+      ],
+    },
+  ];
+
   return (
     <Box>
       <Grid container spacing={1.5}>
